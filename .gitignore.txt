@@ -1,0 +1,2 @@
+whatsapp-clone-frontend/node_modules
+whatsapp-backend/target
