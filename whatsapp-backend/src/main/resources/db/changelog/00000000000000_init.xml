@@ -1,0 +1,30 @@
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="00000000000000-event" author="codecake">
+        <createTable tableName="event_publication">
+            <!-- Use CHAR(36) for UUID in MySQL -->
+            <column name="id" type="CHAR(36)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <!-- Use VARCHAR for TEXT for compatibility -->
+            <column name="listener_id" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="event_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="serialized_event" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <!-- Use TIMESTAMP without time zone -->
+            <column name="publication_date" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="completion_date" type="TIMESTAMP"/>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

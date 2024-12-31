@@ -2,12 +2,13 @@ package com.example.whatsapp_backend.messaging.domain.message.aggregate;
 
 import java.util.Set;
 
+import org.jilt.Builder;
+
 import com.example.whatsapp_backend.messaging.domain.message.vo.ConversationName;
 import com.example.whatsapp_backend.messaging.domain.message.vo.ConversationPublicId;
 import com.example.whatsapp_backend.messaging.domain.user.aggregate.User;
 import com.example.whatsapp_backend.shared.error.domain.Assert;
 
-import lombok.Builder;
 import lombok.Data;
 
 

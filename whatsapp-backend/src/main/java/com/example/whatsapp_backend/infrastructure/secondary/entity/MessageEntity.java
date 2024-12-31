@@ -1,4 +1,4 @@
-package com.example.whatsapp_backend.infrastructure.secondary.document;
+package com.example.whatsapp_backend.infrastructure.secondary.entity;
 
 import java.time.Instant;
 import java.util.Set;
@@ -6,10 +6,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.jilt.Builder;
-import org.springframework.data.mongodb.core.mapping.DBRef;
-import org.springframework.data.mongodb.core.mapping.Field;
 
 import com.example.whatsapp_backend.messaging.domain.message.aggregate.Message;
+import com.example.whatsapp_backend.messaging.domain.message.aggregate.MessageBuilder;
 import com.example.whatsapp_backend.messaging.domain.message.vo.ConversationPublicId;
 import com.example.whatsapp_backend.messaging.domain.message.vo.MessageContent;
 import com.example.whatsapp_backend.messaging.domain.message.vo.MessageMediaContent;
@@ -20,75 +19,93 @@ import com.example.whatsapp_backend.messaging.domain.message.vo.MessageType;
 import com.example.whatsapp_backend.messaging.domain.user.vo.UserPublicId;
 import com.example.whatsapp_backend.shared.jpa.AbstractAuditingEntity;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Builder
+@Entity
+@Table(name = "message")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class MessageDocument extends AbstractAuditingEntity<String>{
+public class MessageEntity extends AbstractAuditingEntity<Long>{
 	
+	@Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "messageSequenceGenerator")
+    @SequenceGenerator(name = "messageSequenceGenerator", sequenceName = "message_sequence", allocationSize = 1)
+    @Column(name = "id")
+    private Long id;
 
-    @Id
-    private String id; // MongoDB uses String for primary keys by default
-
-    @Field("public_id")
+    @Column(name = "public_id", nullable = false, updatable = false)
     private UUID publicId;
 
-    @Field("send_time")
+    @Column(name = "send_time", nullable = false)
     private Instant sendTime;
 
-    @Field("text")
+    @Column(name = "text", nullable = false)
     private String text;
 
-    @Field("type")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false)
     private MessageType type;
 
-    @Field("send_state")
+    @Enumerated(EnumType.STRING)
+    @Column(name = "send_state")
     private MessageSendState sendState;
 
-    @DBRef
-    @Field("user_fk_sender")
-    private UserDocument sender;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_fk_sender", nullable = false)
+    private UserEntity sender;
 
-    @DBRef
-    @Field("conversation_fk")
-    private ConversationDocument conversation;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "conversation_fk", nullable = false)
+    private ConversationEntity conversation;
 
-    @DBRef
-    @Field("message_binary_content_fk")
-    private MessageContentBinaryDocument contentBinary;
-    
-    public static MessageDocument from(Message message) {
-        MessageDocumentBuilder messageDocumentBuilder = MessageDocumentBuilder.messageDocument();
+    @OneToOne
+    @JoinColumn(name = "message_binary_content_fk", referencedColumnName = "id")
+    private MessageContentBinaryEntity contentBinary;
+
+    public static MessageEntity from(Message message) {
+        MessageEntityBuilder messageEntityBuilder = MessageEntityBuilder.messageEntity();
 
         if (message.getContent().type().equals(MessageType.TEXT)) {
-            messageDocumentBuilder.text(message.getContent().text());
+            messageEntityBuilder.text(message.getContent().text());
         } else {
-            messageDocumentBuilder
-                    .contentBinary(MessageContentBinaryDocument.from(message.getContent()));
+            messageEntityBuilder
+                    .contentBinary(MessageContentBinaryEntity.from(message.getContent()));
             if (message.getContent().text() != null) {
-                messageDocumentBuilder.text(message.getContent().text());
+                messageEntityBuilder.text(message.getContent().text());
             }
         }
 
-        UserDocument user = UserDocumentBuilder.userDocument()
+        UserEntity user = UserEntityBuilder.userEntity()
                 .publicId(message.getSender().value()).build();
 
-        messageDocumentBuilder
+        messageEntityBuilder
                 .type(message.getContent().type())
                 .publicId(message.getPublicId().value())
                 .sendTime(message.getSentTime().date())
                 .sendState(message.getSendState())
                 .sender(user);
 
-        return messageDocumentBuilder.build();
+        return messageEntityBuilder.build();
     }
 
-    public static Message toDomain(MessageDocument messageDocument) {
+    public static Message toDomain(MessageEntity messageEntity) {
         MessageBuilder messageBuilder = MessageBuilder.message()
                 .conversationId(new ConversationPublicId(messageEntity.getPublicId()))
                 .sendState(messageEntity.getSendState())
@@ -114,11 +131,10 @@ public class MessageDocument extends AbstractAuditingEntity<String>{
         return messages.stream().map(MessageEntity::toDomain).collect(Collectors.toSet());
     }
 
-
 	@Override
-	public String getId() {
+	public Long getId() {
 		// TODO Auto-generated method stub
-		return null;
+		return id;
 	}
 
 }

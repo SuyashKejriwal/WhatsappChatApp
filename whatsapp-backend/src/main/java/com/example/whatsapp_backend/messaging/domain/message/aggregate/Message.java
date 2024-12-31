@@ -1,5 +1,7 @@
 package com.example.whatsapp_backend.messaging.domain.message.aggregate;
 
+import org.jilt.Builder;
+
 import com.example.whatsapp_backend.messaging.domain.message.vo.ConversationPublicId;
 import com.example.whatsapp_backend.messaging.domain.message.vo.MessageContent;
 import com.example.whatsapp_backend.messaging.domain.message.vo.MessagePublicId;
@@ -8,7 +10,6 @@ import com.example.whatsapp_backend.messaging.domain.message.vo.MessageSentTime;
 import com.example.whatsapp_backend.messaging.domain.user.vo.UserPublicId;
 import com.example.whatsapp_backend.shared.error.domain.Assert;
 
-import lombok.Builder;
 import lombok.Data;
 
 @Builder
